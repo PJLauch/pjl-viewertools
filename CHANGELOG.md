@@ -13,6 +13,6 @@
 - validated local data import, export and deletion
 - compatibility selectors for native Twitch, 7TV and FrankerFaceZ
 
-## Unreleased
+## 0.1.0-alpha.2 — in development
 
 - dedicated Firefox-compatible options page for module settings

@@ -3,6 +3,7 @@ import { defineConfig } from "wxt";
 export default defineConfig({
   manifest: {
     name: "PJL ViewerTools",
+    version: "0.1.0.2",
     description: "Local-first chat assistance for Twitch viewers.",
     icons: {
       16: "icon/16.png",
@@ -29,7 +30,7 @@ export default defineConfig({
     },
     browser_specific_settings: {
       gecko: {
-        id: "pjl-viewertools@example.invalid",
+        id: "pjl-viewertools@pjlauch",
         strict_min_version: "140.0",
         data_collection_permissions: {
           required: ["none"]
