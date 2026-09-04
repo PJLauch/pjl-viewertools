@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title desc">
+  <title id="title">PJL ViewerTools</title>
+  <desc id="desc">Geometric PJL monogram on a purple chat tile</desc>
+  <path fill="#9147ff" d="M20 8h88a12 12 0 0 1 12 12v82a12 12 0 0 1-12 12H45l-20 10 4-10h-9a12 12 0 0 1-12-12V20A12 12 0 0 1 20 8Z"/>
+  <path fill="#fff" d="M24 34h24a10 10 0 0 1 10 10v8a10 10 0 0 1-10 10H35v20H24V34Zm11 10v8h13v-8H35Z"/>
+  <path fill="#7de2b8" d="M61 34h14v48H45V64h11v7h8V44h-3V34Z"/>
+  <path fill="#fff" d="M82 34h11v37h15v11H82V34Z"/>
+</svg>

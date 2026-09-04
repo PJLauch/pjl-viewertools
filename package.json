@@ -1,0 +1,25 @@
+{
+  "name": "pjl-viewertools",
+  "version": "0.1.0-alpha.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wxt -b firefox --mv3",
+    "dev:firefox": "wxt -b firefox --mv3",
+    "dev:chrome": "wxt -b chrome --mv3",
+    "build": "wxt build -b firefox --mv3",
+    "build:firefox": "wxt build -b firefox --mv3",
+    "build:chrome": "wxt build -b chrome --mv3",
+    "check": "tsc --noEmit && vitest run",
+    "zip": "wxt zip -b firefox --mv3",
+    "zip:firefox": "wxt zip -b firefox --mv3",
+    "zip:chrome": "wxt zip -b chrome --mv3",
+    "icons": "node scripts/render-icons.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "^5.9.0",
+    "vitest": "^3.2.0",
+    "wxt": "^0.20.0"
+  }
+}

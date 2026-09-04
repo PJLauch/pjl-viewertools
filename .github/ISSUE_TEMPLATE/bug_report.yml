@@ -1,0 +1,47 @@
+name: Bug report
+description: Report unexpected PJL ViewerTools behavior on Twitch
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for helping test PJL ViewerTools. Do not include private chat content.
+  - type: input
+    id: firefox
+    attributes:
+      label: Firefox version
+      placeholder: e.g. Firefox 142.0 on Windows 11
+    validations:
+      required: true
+  - type: checkboxes
+    id: chat_extensions
+    attributes:
+      label: Other Twitch extensions enabled
+      options:
+        - label: 7TV
+        - label: FrankerFaceZ
+        - label: BetterTTV
+        - label: None of these
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: What did you click, what did you expect, and what happened?
+    validations:
+      required: true
+  - type: dropdown
+    id: page
+    attributes:
+      label: Twitch page
+      options:
+        - Normal channel page
+        - Pop-out chat
+        - Theater mode
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: screenshot
+    attributes:
+      label: Screenshot or additional context
+      description: Please remove or hide private information first.
