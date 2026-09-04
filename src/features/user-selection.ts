@@ -15,7 +15,11 @@ import type { UserNote } from "../core/user-notes";
 import type { ComposerChange } from "../core/composer-draft";
 import { addMentionHistoryEntry, sanitizeMentionHistory } from "../core/mention-history";
 import type { MentionHistoryEntry } from "../core/mention-history";
-import { DEFAULT_MODULE_SETTINGS, sanitizeModuleSettings } from "../core/module-settings";
+import {
+  DEFAULT_MODULE_SETTINGS,
+  MODULE_SETTINGS_STORAGE_KEY,
+  sanitizeModuleSettings
+} from "../core/module-settings";
 import type { ModuleSettings } from "../core/module-settings";
 import { isShortcutMessage } from "../core/shortcut-command";
 import type { ShortcutInfo } from "../core/shortcut-command";
@@ -30,7 +34,7 @@ const ACTIVE_TEMPLATE_KEY = "activeReplyTemplateId";
 const LEGACY_TEMPLATE_KEY = "replyTemplate";
 const USER_NOTES_KEY = "temporaryUserNotes";
 const MENTION_HISTORY_KEY = "mentionHistory";
-const MODULE_SETTINGS_KEY = "moduleSettings";
+const MODULE_SETTINGS_KEY = MODULE_SETTINGS_STORAGE_KEY;
 const PERSISTENT_STORAGE_KEYS = [
   TEMPLATE_LIBRARY_KEY,
   ACTIVE_TEMPLATE_KEY,
@@ -83,6 +87,7 @@ export function mountUserSelection(adapter: ChatAdapter): () => void {
   let stopClicks = () => {};
   let stopMessages = () => {};
   let stopShortcuts = () => {};
+  let stopSettingsSync = () => {};
 
   const shell = document.createElement("div");
   shell.dataset.tptRoot = "selection";
@@ -358,6 +363,14 @@ export function mountUserSelection(adapter: ChatAdapter): () => void {
       options.append(label);
     }
     panel.append(options);
+    const openSettings = document.createElement("button");
+    openSettings.type = "button";
+    openSettings.className = "tpt-chip tpt-open-settings";
+    openSettings.textContent = "Große Einstellungsseite öffnen";
+    openSettings.addEventListener("click", () => {
+      void browser.runtime.openOptionsPage();
+    });
+    panel.append(openSettings);
     const hint = document.createElement("span");
     hint.className = "tpt-shortcuts";
     hint.textContent = shortcutSummary(shortcutInfo);
@@ -1055,6 +1068,16 @@ export function mountUserSelection(adapter: ChatAdapter): () => void {
     persistMentionHistory();
     render();
   });
+  const handleStorageChange = (
+    changes: Record<string, { newValue?: unknown }>,
+    areaName: string
+  ) => {
+    if (areaName !== "local" || !changes[MODULE_SETTINGS_KEY]) return;
+    moduleSettings = sanitizeModuleSettings(changes[MODULE_SETTINGS_KEY].newValue);
+    render();
+  };
+  browser.storage.onChanged.addListener(handleStorageChange);
+  stopSettingsSync = () => browser.storage.onChanged.removeListener(handleStorageChange);
   void browser.runtime.sendMessage({ type: "pjl-get-shortcuts" }).then((result: unknown) => {
     if (!Array.isArray(result)) return;
     shortcutInfo = result.filter((item): item is ShortcutInfo => Boolean(
@@ -1069,6 +1092,7 @@ export function mountUserSelection(adapter: ChatAdapter): () => void {
     stopClicks();
     stopMessages();
     stopShortcuts();
+    stopSettingsSync();
     observer.disconnect();
     if (activityRenderTimer !== null) window.clearTimeout(activityRenderTimer);
     shell.remove();

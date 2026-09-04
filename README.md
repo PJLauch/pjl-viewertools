@@ -19,6 +19,7 @@ The extension prepares text in Twitch's composer but **never sends a message**.
 - expiring private user notes for 1, 7 or 30 days
 - rolling chat-activity indicator
 - optional modules and Firefox keyboard shortcuts
+- dedicated settings page, opened from the PJL menu, with live module synchronization
 - validated local JSON backup and restore
 
 ## Privacy and permissions

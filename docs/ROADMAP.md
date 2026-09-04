@@ -20,7 +20,7 @@ codebase.
 - editable local template library with starter suggestions (implemented)
 - Firefox/browser keyboard shortcuts (implemented); selection from message action menu later
 - undo after composer insertion (implemented)
-- per-module toggles in the chat panel (implemented); dedicated options page later
+- per-module toggles in the chat panel and dedicated options page (implemented)
 
 ## 0.3 — Context
 

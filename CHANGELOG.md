@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.0-alpha.1 — in development
+## 0.1.0-alpha.1 — 2026-09-04
 
 - Firefox-first Manifest V3 foundation
 - multi-user selection and combined mention preparation
@@ -12,3 +12,7 @@
 - Firefox keyboard shortcuts with conflict visibility
 - validated local data import, export and deletion
 - compatibility selectors for native Twitch, 7TV and FrankerFaceZ
+
+## Unreleased
+
+- dedicated Firefox-compatible options page for module settings

@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PJL ViewerTools – Einstellungen</title>
+  </head>
+  <body>
+    <main class="options-shell">
+      <header class="hero">
+        <img src="/icon/96.png" alt="" width="64" height="64" />
+        <div>
+          <p class="eyebrow">PJL ViewerTools</p>
+          <h1>Einstellungen</h1>
+          <p>Bestimme, welche Werkzeuge im Twitch-Chat angezeigt werden.</p>
+        </div>
+      </header>
+
+      <section class="card" aria-labelledby="modules-title">
+        <div class="section-heading">
+          <div>
+            <h2 id="modules-title">Chat-Module</h2>
+            <p>Änderungen werden lokal gespeichert und in offenen Twitch-Tabs übernommen.</p>
+          </div>
+          <button id="reset-modules" class="secondary" type="button">Alle aktivieren</button>
+        </div>
+        <div id="module-list" class="module-list"></div>
+        <p id="save-status" class="status" role="status" aria-live="polite"></p>
+      </section>
+
+      <section class="card info" aria-labelledby="privacy-title">
+        <h2 id="privacy-title">Privatsphäre</h2>
+        <p>Diese Einstellungen bleiben im Browser. PJL ViewerTools besitzt keine Telemetrie und sendet keine Chatnachrichten automatisch.</p>
+      </section>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

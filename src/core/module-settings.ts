@@ -6,6 +6,8 @@ export interface ModuleSettings {
   filters: boolean;
 }
 
+export const MODULE_SETTINGS_STORAGE_KEY = "moduleSettings";
+
 export const DEFAULT_MODULE_SETTINGS: ModuleSettings = {
   activity: true,
   notes: true,
