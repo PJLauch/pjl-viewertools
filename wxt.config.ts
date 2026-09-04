@@ -3,7 +3,7 @@ import { defineConfig } from "wxt";
 export default defineConfig({
   manifest: {
     name: "PJL ViewerTools",
-    version: "0.1.0.2",
+    version: "0.1.0.3",
     description: "Local-first chat assistance for Twitch viewers.",
     icons: {
       16: "icon/16.png",

@@ -730,7 +730,69 @@ export function mountUserSelection(adapter: ChatAdapter): () => void {
     panel.append(menu);
   };
 
+  const appendReplyComposer = () => {
+    if (selected.size === 0) {
+      const hint = document.createElement("span");
+      hint.className = "tpt-hint tpt-reply-hint";
+      hint.textContent = selectionMode
+        ? "Jetzt Namen im Chat anklicken"
+        : "Begrüßer und Mentions werden automatisch gesammelt";
+      panel.append(hint);
+      return;
+    }
+
+    const reply = formatReplyTemplate(
+      replyTemplate,
+      Array.from(selected.values(), (item) => item.username)
+    );
+    const composer = document.createElement("section");
+    composer.className = "tpt-reply-composer";
+    composer.setAttribute("aria-label", "Vorbereitete Twitch-Antwort");
+    const label = document.createElement("strong");
+    label.textContent = `${selected.size} ${selected.size === 1 ? "Person" : "Personen"} ausgewählt`;
+    const preview = document.createElement("div");
+    preview.className = "tpt-reply-preview";
+    preview.textContent = reply;
+    const users = document.createElement("div");
+    users.className = "tpt-selection__users";
+    for (const [key, candidate] of selected) {
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.className = "tpt-chip";
+      chip.textContent = `@${candidate.username} ×`;
+      chip.title = `${candidate.username} entfernen · ${reasonLabel(candidate.reason)}`;
+      chip.addEventListener("click", () => { selected.delete(key); render(); });
+      users.append(chip);
+    }
+    const actions = document.createElement("div");
+    actions.className = "tpt-reply-actions";
+    const insert = document.createElement("button");
+    insert.type = "button";
+    insert.className = "tpt-action";
+    insert.textContent = "In Twitch-Chat einfügen";
+    insert.addEventListener("click", () => {
+      const change = adapter.writeComposer(reply);
+      if (!change) return;
+      lastComposerChange = change;
+      undoMessage = "";
+      selected.clear();
+      render();
+    });
+    const clear = document.createElement("button");
+    clear.type = "button";
+    clear.className = "tpt-clear";
+    clear.textContent = "Auswahl leeren";
+    clear.addEventListener("click", () => { selected.clear(); render(); });
+    actions.append(insert, clear);
+    composer.append(label, preview, users, actions);
+    panel.append(composer);
+  };
+
   const render = () => {
+    if (lastComposerChange && !adapter.canUndoComposer(lastComposerChange)) {
+      lastComposerChange = null;
+      undoMessage = "";
+    }
     panel.replaceChildren();
     panel.hidden = !panelOpen;
     launcher.setAttribute("aria-expanded", String(panelOpen));
@@ -860,6 +922,7 @@ export function mountUserSelection(adapter: ChatAdapter): () => void {
     templateControls.append(templateSelect, nameInput, templateInput, templateActions);
     panel.append(templateControls);
     }
+    appendReplyComposer();
     appendToolMenu();
     appendModuleSettings();
     if (moduleSettings.notes) appendNotes();
@@ -894,50 +957,6 @@ export function mountUserSelection(adapter: ChatAdapter): () => void {
       status.textContent = undoMessage;
       panel.append(status);
     }
-    if (selected.size === 0) {
-      const hint = document.createElement("span");
-      hint.className = "tpt-hint";
-      hint.textContent = selectionMode
-        ? "Jetzt Namen im Chat anklicken"
-        : "Begrüßer werden automatisch gesammelt";
-      panel.append(hint);
-      return;
-    }
-    const users = document.createElement("div");
-    users.className = "tpt-selection__users";
-    for (const [key, candidate] of selected) {
-      const chip = document.createElement("button");
-      chip.type = "button";
-      chip.className = "tpt-chip";
-      chip.textContent = `@${candidate.username} ×`;
-      chip.title = `${candidate.username} entfernen · ${reasonLabel(candidate.reason)}`;
-      chip.addEventListener("click", () => { selected.delete(key); render(); });
-      users.append(chip);
-    }
-    const prepare = document.createElement("button");
-    prepare.type = "button";
-    prepare.className = "tpt-action";
-    prepare.textContent = "Mentions vorbereiten";
-    prepare.addEventListener("click", () => {
-      const reply = formatReplyTemplate(
-        replyTemplate,
-        Array.from(selected.values(), (item) => item.username)
-      );
-      const change = adapter.writeComposer(reply);
-      if (change) {
-        lastComposerChange = change;
-        undoMessage = "";
-        selected.clear();
-        render();
-      }
-    });
-    const clear = document.createElement("button");
-    clear.type = "button";
-    clear.className = "tpt-clear";
-    clear.textContent = "Leeren";
-    clear.addEventListener("click", () => { selected.clear(); render(); });
-    panel.append(users, prepare, clear);
-
   };
 
   launcher.addEventListener("click", () => {

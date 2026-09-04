@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addressesUser, looksLikeGreeting } from "../src/core/greetings";
+import { addressesUser, looksLikeGreeting, usernameAliases } from "../src/core/greetings";
 
 describe("automatic greeting candidates", () => {
   it("recognizes common German and English greetings", () => {
@@ -16,5 +16,12 @@ describe("automatic greeting candidates", () => {
     expect(addressesUser("Hi @PJLauch", "", "PJLauch")).toBe(true);
     expect(addressesUser("Danke!", "Replying to PJLauch", "PJLauch")).toBe(true);
     expect(addressesUser("Hallo jemand anderes", "", "PJLauch")).toBe(false);
+  });
+
+  it("recognizes clear username parts without matching arbitrary substrings", () => {
+    expect(usernameAliases("PJLauch")).toEqual(["PJLauch", "PJL", "Lauch"]);
+    expect(addressesUser("Hi PJL", "", "PJLauch")).toBe(true);
+    expect(addressesUser("Hallo Lauch", "", "PJLauch")).toBe(true);
+    expect(addressesUser("Das PJLauchhaus", "", "PJLauch")).toBe(false);
   });
 });

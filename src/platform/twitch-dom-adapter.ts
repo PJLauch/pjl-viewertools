@@ -49,33 +49,43 @@ export class TwitchDomAdapter implements ChatAdapter {
   }
 
   onChatMessage(listener: (message: ChatMessage) => void): () => void {
-    const processed = new WeakSet<Element>();
+    const processed = new WeakMap<Element, string>();
     const process = (element: Element) => {
       const line = element.matches(MESSAGE_SELECTOR) ? element : element.closest(MESSAGE_SELECTOR);
-      if (!line || processed.has(line)) return;
-      processed.add(line);
+      if (!line) return;
       const usernameElement = line.querySelector<HTMLElement>(USERNAME_SELECTOR);
       const username = usernameElement ? usernameFromElement(usernameElement) : null;
-      if (!username) return;
-      const messageElement = line.querySelector<HTMLElement>('[data-a-target="chat-message-text"]');
+      if (!username || !usernameElement) return;
+      const messageElement = line.querySelector<HTMLElement>([
+        '[data-a-target="chat-message-text"]',
+        '.seventv-chat-message-body',
+        '.seventv-message-content'
+      ].join(","));
       const replyElement = line.querySelector<HTMLElement>('[data-a-target="chat-message-reply-context"]');
+      const text = (messageElement?.textContent ?? line.textContent ?? "").trim();
+      if (!text || (!messageElement && text === usernameElement.textContent?.trim())) return;
+      const replyContext = (replyElement?.textContent ?? "").trim();
+      const fingerprint = `${username}\n${text}\n${replyContext}`;
+      if (processed.get(line) === fingerprint) return;
+      processed.set(line, fingerprint);
       listener({
         username,
-        text: (messageElement?.textContent ?? line.textContent ?? "").trim(),
-        replyContext: (replyElement?.textContent ?? "").trim()
+        text,
+        replyContext
       });
     };
     this.root.querySelectorAll(MESSAGE_SELECTOR).forEach(process);
     const observer = new MutationObserver((records) => {
       for (const record of records) {
         for (const node of record.addedNodes) {
-          if (!(node instanceof Element)) continue;
-          process(node);
-          node.querySelectorAll(MESSAGE_SELECTOR).forEach(process);
+          const element = node instanceof Element ? node : node.parentElement;
+          if (!element) continue;
+          process(element);
+          element.querySelectorAll(MESSAGE_SELECTOR).forEach(process);
         }
       }
     });
-    observer.observe(this.root.body, { childList: true, subtree: true });
+    observer.observe(this.root.body, { characterData: true, childList: true, subtree: true });
     return () => observer.disconnect();
   }
 
@@ -93,6 +103,11 @@ export class TwitchDomAdapter implements ChatAdapter {
     if (!composer || !canUndoDraft(composer.textContent ?? "", change)) return false;
     this.replaceComposerText(composer, change.previousText);
     return true;
+  }
+
+  canUndoComposer(change: ComposerChange): boolean {
+    const composer = this.root.querySelector<HTMLElement>(COMPOSER_SELECTOR);
+    return Boolean(composer && canUndoDraft(composer.textContent ?? "", change));
   }
 
   getMountPoint(): HTMLElement | null {

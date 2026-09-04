@@ -13,6 +13,14 @@
 - validated local data import, export and deletion
 - compatibility selectors for native Twitch, 7TV and FrankerFaceZ
 
-## 0.1.0-alpha.2 — in development
+## 0.1.0-alpha.3 — in development
+
+- keep tracking messages when Twitch or 7TV recycle chat DOM elements
+- recognize full usernames, @mentions and clear username parts such as PJL/Lauch
+- show selected users, formatted reply preview and the insert action together
+- hide composer undo once the draft changes or the message is sent
+- restore session search and activity tracking after long-running chat sessions
+
+## 0.1.0-alpha.2 — 2026-09-04
 
 - dedicated Firefox-compatible options page for module settings
