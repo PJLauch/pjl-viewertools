@@ -10,7 +10,7 @@
     "build": "wxt build -b firefox --mv3",
     "build:firefox": "wxt build -b firefox --mv3",
     "build:chrome": "wxt build -b chrome --mv3",
-    "check": "tsc --noEmit && vitest run",
+    "check": "wxt prepare && tsc --noEmit && vitest run",
     "zip": "wxt zip -b firefox --mv3",
     "zip:firefox": "wxt zip -b firefox --mv3",
     "zip:chrome": "wxt zip -b chrome --mv3",
