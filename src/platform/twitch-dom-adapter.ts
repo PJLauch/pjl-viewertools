@@ -77,6 +77,11 @@ export class TwitchDomAdapter implements ChatAdapter {
     this.root.querySelectorAll(MESSAGE_SELECTOR).forEach(process);
     const observer = new MutationObserver((records) => {
       for (const record of records) {
+        if (record.type === "characterData") {
+          const parent = record.target.parentElement;
+          if (parent) process(parent);
+          continue;
+        }
         for (const node of record.addedNodes) {
           const element = node instanceof Element ? node : node.parentElement;
           if (!element) continue;

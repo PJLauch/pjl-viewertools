@@ -33,7 +33,7 @@ current page session. See [Privacy](docs/PRIVACY.md) for retention details.
 
 ## Try the Firefox development build
 
-1. Build or obtain `pjl-viewertools-0.1.0-alpha.1-firefox.zip`.
+1. Build or obtain the current Firefox ZIP from a PJL ViewerTools release.
 2. Open `about:debugging#/runtime/this-firefox` in Firefox.
 3. Choose **Load Temporary Add-on** and select the ZIP.
 4. Open or reload a Twitch channel.
