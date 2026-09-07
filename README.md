@@ -17,7 +17,8 @@ The extension prepares text in Twitch's composer but **never sends a message**.
 - conversation view with reply and mention relationships
 - bounded local mention history: 100 entries, removed after 30 days
 - expiring private user notes for 1, 7 or 30 days
-- rolling chat-activity indicator
+- adaptive chat-activity indicator using a 1, 2 or 5 minute window
+- session-only search across the latest 1,000 observed messages
 - optional modules and Firefox keyboard shortcuts
 - dedicated settings page, opened from the PJL menu, with live module synchronization
 - validated local JSON backup and restore
@@ -32,6 +33,8 @@ The full chat history, inbox, selection and reply-later queue exist only for the
 current page session. See [Privacy](docs/PRIVACY.md) for retention details.
 
 ## Try the Firefox development build
+
+Firefox needs permission to read Twitch so the chat tools can start automatically. A normal signed installation asks for this during installation. When repeatedly removing and loading temporary test builds, Firefox may forget the permission; in the extension menu choose **Always allow on www.twitch.tv** again.
 
 1. Build or obtain the current Firefox ZIP from a PJL ViewerTools release.
 2. Open `about:debugging#/runtime/this-firefox` in Firefox.

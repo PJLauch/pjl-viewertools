@@ -14,6 +14,7 @@
 .tpt-activity { align-items: center; color: #adadb8; display: grid; flex: 1 1 11rem; font-size: .78em; gap: .1rem .4rem; grid-template-columns: auto 1fr; justify-content: end; }
 .tpt-activity strong { color: #efeff1; }
 .tpt-activity > span:last-child { grid-column: 2; }
+.tpt-activity__last-message { color: #8b8b98; font-size: .92em; }
 .tpt-activity__dot { background: #7de2b8; border-radius: 50%; grid-row: 1 / 3; height: .65rem; width: .65rem; }
 .tpt-activity--busy .tpt-activity__dot { background: #ffb31a; }
 .tpt-activity--rapid .tpt-activity__dot { background: #eb4b4b; }

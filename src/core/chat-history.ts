@@ -15,7 +15,7 @@ export interface ConversationMessage extends SessionMessage {
 export function addChatHistory(
   history: readonly SessionMessage[],
   message: SessionMessage,
-  limit = 300
+  limit = 1_000
 ): SessionMessage[] {
   return [...history, message].slice(-limit);
 }

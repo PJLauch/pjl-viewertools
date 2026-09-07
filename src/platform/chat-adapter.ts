@@ -15,4 +15,5 @@ export interface ChatMessage {
   username: string;
   text: string;
   replyContext: string;
+  receivedAt?: number;
 }

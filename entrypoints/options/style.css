@@ -1,7 +1,7 @@
 :root { color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, sans-serif; background: #0e0e10; color: #efeff1; }
 * { box-sizing: border-box; }
 body { margin: 0; min-width: 20rem; }
-button, input { font: inherit; }
+button, input, textarea { font: inherit; }
 .options-shell { margin: 0 auto; max-width: 52rem; padding: 3rem 1.25rem 5rem; }
 .hero { align-items: center; display: flex; gap: 1.25rem; margin-bottom: 2rem; }
 .hero img { border-radius: 1rem; box-shadow: 0 .5rem 2rem rgba(0,0,0,.35); }
@@ -22,5 +22,9 @@ h2 { font-size: 1.25rem; margin-bottom: .35rem; }
 .module-row input { accent-color: #9147ff; height: 1.25rem; width: 1.25rem; }
 .module-row:focus-within { outline: 2px solid #bf94ff; outline-offset: 2px; }
 .status { color: #7de2b8; min-height: 1.4rem; margin: .8rem 0 0; }
+.debug-toggle { align-items: center; background: #202024; border-radius: .6rem; cursor: pointer; display: flex; gap: .65rem; padding: .6rem .75rem; white-space: nowrap; }
+.debug-toggle input { accent-color: #9147ff; height: 1.2rem; width: 1.2rem; }
+.debug-output { background: #0e0e10; border: 1px solid #53535f; border-radius: .65rem; color: #dedee3; display: block; line-height: 1.45; padding: .8rem; resize: vertical; width: 100%; }
+.debug-actions { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: .8rem; }
 .info { box-shadow: none; }
 @media (max-width: 34rem) { .options-shell { padding-top: 1.5rem; } .section-heading { align-items: stretch; flex-direction: column; } .secondary { align-self: start; } }

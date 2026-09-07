@@ -9,7 +9,7 @@ data to the project maintainers.
 The following data remains in memory and disappears when the Twitch page is
 closed or reloaded:
 
-- the last 300 observed chat messages used for search, filters and conversations
+- the last 1,000 observed chat messages used for search, filters and conversations
 - the current username selection
 - the inbox and unread count
 - the reply-later queue
@@ -23,10 +23,14 @@ Firefox extension storage contains only:
 - enabled module settings
 - private user notes, each with an expiry of 1, 7 or 30 days
 - up to 100 direct mentions or replies, retained for at most 30 days
+- when explicitly enabled, up to 100 technical debug entries without chat text or usernames
 
 The settings panel shows stored item counts. Users can export a validated JSON
 backup or remove all persistent PJL data. Import replaces existing persistent
 data only after confirmation.
+
+Debug logging is disabled by default. It can be copied or deleted from the
+settings page and is never transmitted automatically.
 
 ## Twitch composer
 

@@ -11,6 +11,16 @@ describe("session chat history", () => {
     expect(history).toEqual([message("Bob", "two", 2)]);
   });
 
+  it("keeps up to 1,000 messages in the default session history", () => {
+    let history: ReturnType<typeof addChatHistory> = [];
+    for (let index = 0; index < 1_001; index += 1) {
+      history = addChatHistory(history, message("Anna", `message ${index}`, index));
+    }
+    expect(history).toHaveLength(1_000);
+    expect(history[0]?.text).toBe("message 1");
+    expect(history.at(-1)?.text).toBe("message 1000");
+  });
+
   it("finds a user's recent messages case-insensitively", () => {
     const history = [message("Anna", "one", 1), message("Bob", "two", 2), message("ANNA", "three", 3)];
     expect(messagesForUser(history, "anna").map((item) => item.text)).toEqual(["one", "three"]);

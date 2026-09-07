@@ -28,6 +28,25 @@
         <p id="save-status" class="status" role="status" aria-live="polite"></p>
       </section>
 
+      <section class="card" aria-labelledby="debug-title">
+        <div class="section-heading">
+          <div>
+            <h2 id="debug-title">Debug-Protokoll</h2>
+            <p>Erfasst höchstens 100 technische Einträge lokal – ohne Chattexte oder Nutzernamen.</p>
+          </div>
+          <label class="debug-toggle">
+            <span>Debug-Modus</span>
+            <input id="debug-enabled" type="checkbox" />
+          </label>
+        </div>
+        <textarea id="debug-output" class="debug-output" rows="10" readonly placeholder="Noch keine Debug-Einträge vorhanden."></textarea>
+        <div class="debug-actions">
+          <button id="copy-debug" class="secondary" type="button">Protokoll kopieren</button>
+          <button id="clear-debug" class="secondary" type="button">Protokoll löschen</button>
+        </div>
+        <p id="debug-status" class="status" role="status" aria-live="polite"></p>
+      </section>
+
       <section class="card info" aria-labelledby="privacy-title">
         <h2 id="privacy-title">Privatsphäre</h2>
         <p>Diese Einstellungen bleiben im Browser. PJL ViewerTools besitzt keine Telemetrie und sendet keine Chatnachrichten automatisch.</p>

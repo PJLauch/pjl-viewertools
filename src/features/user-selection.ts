@@ -28,6 +28,7 @@ import type { ChatFilterMode } from "../core/chat-filter";
 import { createDataExport, parseDataImport } from "../core/data-export";
 import type { ChatAdapter } from "../platform/chat-adapter";
 import { browser } from "wxt/browser";
+import { appendDebugLog, DEBUG_ENABLED_STORAGE_KEY, DEBUG_LOG_STORAGE_KEY } from "../core/debug-log";
 
 const TEMPLATE_LIBRARY_KEY = "replyTemplates";
 const ACTIVE_TEMPLATE_KEY = "activeReplyTemplateId";
@@ -41,7 +42,9 @@ const PERSISTENT_STORAGE_KEYS = [
   LEGACY_TEMPLATE_KEY,
   USER_NOTES_KEY,
   MENTION_HISTORY_KEY,
-  MODULE_SETTINGS_KEY
+  MODULE_SETTINGS_KEY,
+  DEBUG_ENABLED_STORAGE_KEY,
+  DEBUG_LOG_STORAGE_KEY
 ];
 
 export function mountUserSelection(adapter: ChatAdapter): () => void {
@@ -57,6 +60,7 @@ export function mountUserSelection(adapter: ChatAdapter): () => void {
   let conversationUsername: string | null = null;
   let searchQuery = "";
   let activityRenderTimer: number | null = null;
+  let activityRefreshTimer: number | null = null;
   let notes: UserNote[] = [];
   let noteUsername = "";
   let noteText = "";
@@ -84,6 +88,7 @@ export function mountUserSelection(adapter: ChatAdapter): () => void {
   let unreadInboxCount = 0;
   let inboxExpanded = false;
   let stopped = false;
+  let firstObservedMessageLogged = false;
   let stopClicks = () => {};
   let stopMessages = () => {};
   let stopShortcuts = () => {};
@@ -332,8 +337,16 @@ export function mountUserSelection(adapter: ChatAdapter): () => void {
     const label = document.createElement("strong");
     label.textContent = activityLabel(activity.level);
     const details = document.createElement("span");
-    details.textContent = `${activity.messagesPerMinute} Nachrichten/min · ${activity.activeUsers} Personen`;
-    status.append(dot, label, details);
+    const average = activity.windowMinutes === 1 ? "" : "Ø ";
+    details.textContent = `${average}${formatActivityRate(activity.messagesPerMinute)} Nachrichten/min (${activity.windowMinutes} Min.) · ${activity.activeUsers} Personen`;
+    if (activity.lastMessageAt !== null) {
+      const lastMessage = document.createElement("span");
+      lastMessage.className = "tpt-activity__last-message";
+      lastMessage.textContent = `Letzte Nachricht ${formatMessageAge(activity.lastMessageAt)}.`;
+      status.append(dot, label, details, lastMessage);
+    } else {
+      status.append(dot, label, details);
+    }
     panel.append(status);
   };
 
@@ -1012,7 +1025,16 @@ export function mountUserSelection(adapter: ChatAdapter): () => void {
     return true;
   });
   stopMessages = adapter.onChatMessage((message) => {
-    chatHistory = addChatHistory(chatHistory, { ...message, receivedAt: Date.now() });
+    if (!firstObservedMessageLogged) {
+      firstObservedMessageLogged = true;
+      void appendDebugLog("chat", "first-message-observed", {
+        timestampFound: message.receivedAt !== undefined
+      });
+    }
+    chatHistory = addChatHistory(chatHistory, {
+      ...message,
+      receivedAt: message.receivedAt ?? Date.now()
+    });
     if (panelOpen && activityRenderTimer === null) {
       activityRenderTimer = window.setTimeout(() => {
         activityRenderTimer = null;
@@ -1067,6 +1089,9 @@ export function mountUserSelection(adapter: ChatAdapter): () => void {
   });
   const observer = new MutationObserver(mount);
   observer.observe(document.body, { childList: true, subtree: true });
+  activityRefreshTimer = window.setInterval(() => {
+    if (panelOpen && moduleSettings.activity && !panel.contains(document.activeElement)) render();
+  }, 30_000);
   mount();
   render();
   void browser.storage.local.get([TEMPLATE_LIBRARY_KEY, ACTIVE_TEMPLATE_KEY, LEGACY_TEMPLATE_KEY, USER_NOTES_KEY, MENTION_HISTORY_KEY, MODULE_SETTINGS_KEY]).then((stored) => {
@@ -1114,6 +1139,7 @@ export function mountUserSelection(adapter: ChatAdapter): () => void {
     stopSettingsSync();
     observer.disconnect();
     if (activityRenderTimer !== null) window.clearTimeout(activityRenderTimer);
+    if (activityRefreshTimer !== null) window.clearInterval(activityRefreshTimer);
     shell.remove();
     if (document.documentElement.getAttribute(ownerAttribute) === instanceId) {
       document.documentElement.removeAttribute(ownerAttribute);
@@ -1139,6 +1165,17 @@ function activityLabel(level: ActivityLevel): string {
     case "busy": return "Aktiver Chat";
     case "rapid": return "Sehr schneller Chat";
   }
+}
+
+function formatActivityRate(rate: number): string {
+  return new Intl.NumberFormat("de-DE", { maximumFractionDigits: 1 }).format(rate);
+}
+
+function formatMessageAge(receivedAt: number, now = Date.now()): string {
+  const elapsedMinutes = Math.max(0, Math.floor((now - receivedAt) / 60_000));
+  if (elapsedMinutes < 1) return "gerade eben";
+  if (elapsedMinutes === 1) return "vor 1 Min";
+  return `vor ${elapsedMinutes} Min`;
 }
 
 function remainingDays(expiresAt: number): number {

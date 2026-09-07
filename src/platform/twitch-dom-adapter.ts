@@ -5,6 +5,8 @@ import type { ComposerChange } from "../core/composer-draft";
 
 const USERNAME_SELECTOR = [
   '[data-a-target="chat-message-username"]',
+  '[data-test-selector="chat-message-username"]',
+  '[data-test-selector="chat-line-username"]',
   '[data-test-selector="message-username"]',
   '.chat-author__display-name',
   '.chat-line__username',
@@ -15,9 +17,44 @@ const USERNAME_SELECTOR = [
 const COMPOSER_SELECTOR = '[data-a-target="chat-input"], [role="textbox"][contenteditable="true"]';
 const MESSAGE_SELECTOR = [
   '[data-a-target="chat-line-message"]',
+  '[data-test-selector="chat-line-message"]',
+  '.chat-line__message',
   '.chat-line__message[data-user]',
   'seventv-message'
 ].join(",");
+const MESSAGE_TEXT_SELECTOR = [
+  '[data-a-target="chat-message-text"]',
+  '[data-test-selector="chat-message-text"]',
+  '.text-fragment',
+  '.seventv-chat-message-body',
+  '.seventv-message-content'
+].join(",");
+const TIMESTAMP_SELECTOR = [
+  '[data-a-target="chat-timestamp"]',
+  '.seventv-chat-message-timestamp',
+  'time[datetime]'
+].join(",");
+
+export function parseChatTimestamp(value: string, now = Date.now()): number | null {
+  const normalized = value.trim().replace(/\s+/g, " ");
+  if (!normalized) return null;
+  const absolute = Date.parse(normalized);
+  if (Number.isFinite(absolute) && /\d{4}/.test(normalized)) return absolute;
+
+  const match = normalized.match(/^(\d{1,2}):(\d{2})(?::\d{2})?\s*(AM|PM)?$/i);
+  if (!match) return null;
+  let hours = Number(match[1]);
+  const minutes = Number(match[2]);
+  const meridiem = match[3]?.toUpperCase();
+  if (minutes > 59 || hours > (meridiem ? 12 : 23) || hours < 0) return null;
+  if (meridiem === "AM") hours = hours === 12 ? 0 : hours;
+  if (meridiem === "PM") hours = hours === 12 ? 12 : hours + 12;
+
+  const timestamp = new Date(now);
+  timestamp.setHours(hours, minutes, 0, 0);
+  if (timestamp.getTime() > now + 5 * 60_000) timestamp.setDate(timestamp.getDate() - 1);
+  return timestamp.getTime();
+}
 
 function usernameFromElement(element: HTMLElement): string | null {
   const explicit = element.dataset.aUser
@@ -50,19 +87,17 @@ export class TwitchDomAdapter implements ChatAdapter {
 
   onChatMessage(listener: (message: ChatMessage) => void): () => void {
     const processed = new WeakMap<Element, string>();
-    const process = (element: Element) => {
-      const line = element.matches(MESSAGE_SELECTOR) ? element : element.closest(MESSAGE_SELECTOR);
-      if (!line) return;
+    const processLine = (line: Element) => {
       const usernameElement = line.querySelector<HTMLElement>(USERNAME_SELECTOR);
       const username = usernameElement ? usernameFromElement(usernameElement) : null;
       if (!username || !usernameElement) return;
-      const messageElement = line.querySelector<HTMLElement>([
-        '[data-a-target="chat-message-text"]',
-        '.seventv-chat-message-body',
-        '.seventv-message-content'
-      ].join(","));
+      const messageElements = Array.from(line.querySelectorAll<HTMLElement>(MESSAGE_TEXT_SELECTOR));
+      const messageElement = messageElements[0] ?? null;
       const replyElement = line.querySelector<HTMLElement>('[data-a-target="chat-message-reply-context"]');
-      const text = (messageElement?.textContent ?? line.textContent ?? "").trim();
+      const timestampElement = line.querySelector<HTMLElement>(TIMESTAMP_SELECTOR);
+      const text = (messageElements.length > 1
+        ? messageElements.map((item) => item.textContent ?? "").join("")
+        : messageElement?.textContent ?? line.textContent ?? "").trim();
       if (!text || (!messageElement && text === usernameElement.textContent?.trim())) return;
       const replyContext = (replyElement?.textContent ?? "").trim();
       const fingerprint = `${username}\n${text}\n${replyContext}`;
@@ -71,27 +106,64 @@ export class TwitchDomAdapter implements ChatAdapter {
       listener({
         username,
         text,
-        replyContext
+        replyContext,
+        receivedAt: parseChatTimestamp(
+          timestampElement?.getAttribute("datetime") ?? timestampElement?.textContent ?? ""
+        ) ?? undefined
       });
     };
-    this.root.querySelectorAll(MESSAGE_SELECTOR).forEach(process);
+    const process = (element: Element) => {
+      const line = element.matches(MESSAGE_SELECTOR) ? element : element.closest(MESSAGE_SELECTOR);
+      if (line) processLine(line);
+    };
+    const processFromUsername = (usernameElement: Element) => {
+      let candidate = usernameElement.parentElement;
+      for (let depth = 0; candidate && depth < 8; depth += 1, candidate = candidate.parentElement) {
+        if (candidate.querySelector(MESSAGE_TEXT_SELECTOR)
+          && candidate.querySelectorAll(USERNAME_SELECTOR).length <= 3) {
+          processLine(candidate);
+          return;
+        }
+      }
+    };
+    const scanVisibleMessages = () => {
+      this.root.querySelectorAll(MESSAGE_SELECTOR).forEach(process);
+      this.root.querySelectorAll(USERNAME_SELECTOR).forEach(processFromUsername);
+    };
+    scanVisibleMessages();
     const observer = new MutationObserver((records) => {
       for (const record of records) {
-        if (record.type === "characterData") {
+        if (record.type === "characterData" || record.type === "attributes") {
           const parent = record.target.parentElement;
-          if (parent) process(parent);
+          if (record.target instanceof Element) process(record.target);
+          else if (parent) process(parent);
           continue;
         }
         for (const node of record.addedNodes) {
+          if (node instanceof DocumentFragment) {
+            node.querySelectorAll(MESSAGE_SELECTOR).forEach(process);
+            continue;
+          }
           const element = node instanceof Element ? node : node.parentElement;
-          if (!element) continue;
-          process(element);
-          element.querySelectorAll(MESSAGE_SELECTOR).forEach(process);
+          if (element) {
+            process(element);
+            element.querySelectorAll(MESSAGE_SELECTOR).forEach(process);
+          }
         }
       }
     });
-    observer.observe(this.root.body, { characterData: true, childList: true, subtree: true });
-    return () => observer.disconnect();
+    observer.observe(this.root.body, {
+      attributes: true,
+      attributeFilter: ["data-user", "data-a-user"],
+      characterData: true,
+      childList: true,
+      subtree: true
+    });
+    const reconciliationTimer = this.root.defaultView?.setInterval(scanVisibleMessages, 2_000);
+    return () => {
+      observer.disconnect();
+      if (reconciliationTimer !== undefined) this.root.defaultView?.clearInterval(reconciliationTimer);
+    };
   }
 
   writeComposer(text: string): ComposerChange | null {

@@ -2,6 +2,16 @@ import { browser } from "wxt/browser";
 import { isShortcutCommand, isShortcutControlMessage } from "../src/core/shortcut-command";
 
 export default defineBackground(() => {
+  browser.action.onClicked.addListener(async (tab) => {
+    if (tab.id && tab.url?.startsWith("https://www.twitch.tv/")) {
+      await browser.tabs.sendMessage(tab.id, {
+        type: "pjl-shortcut",
+        command: "toggle-panel"
+      }).catch(() => undefined);
+      return;
+    }
+    await browser.runtime.openOptionsPage();
+  });
   browser.commands.onCommand.addListener(async (command) => {
     if (!isShortcutCommand(command)) return;
     const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
